@@ -64,6 +64,16 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 }
 
 abstract class RustLibApi extends BaseApi {
+  String colorModelDescription({required ColorModel that, dynamic hint});
+
+  Future<ColorModel> getRandomColorAsync({dynamic hint});
+
+  Future<void> getRandomColorCallback(
+      {required FutureOr<void> Function(ColorModel) dartCallback,
+      dynamic hint});
+
+  ColorModel getRandomColorSync({dynamic hint});
+
   String greet({required String name, dynamic hint});
 
   Future<void> initApp({dynamic hint});
@@ -76,6 +86,105 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     required super.generalizedFrbRustBinding,
     required super.portManager,
   });
+
+  @override
+  String colorModelDescription({required ColorModel that, dynamic hint}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_box_autoadd_color_model(that, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: null,
+      ),
+      constMeta: kColorModelDescriptionConstMeta,
+      argValues: [that],
+      apiImpl: this,
+      hint: hint,
+    ));
+  }
+
+  TaskConstMeta get kColorModelDescriptionConstMeta => const TaskConstMeta(
+        debugName: "ColorModel_description",
+        argNames: ["that"],
+      );
+
+  @override
+  Future<ColorModel> getRandomColorAsync({dynamic hint}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 3, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_color_model,
+        decodeErrorData: null,
+      ),
+      constMeta: kGetRandomColorAsyncConstMeta,
+      argValues: [],
+      apiImpl: this,
+      hint: hint,
+    ));
+  }
+
+  TaskConstMeta get kGetRandomColorAsyncConstMeta => const TaskConstMeta(
+        debugName: "get_random_color_async",
+        argNames: [],
+      );
+
+  @override
+  Future<void> getRandomColorCallback(
+      {required FutureOr<void> Function(ColorModel) dartCallback,
+      dynamic hint}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_DartFn_Inputs_color_model_Output_unit(
+            dartCallback, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 5, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kGetRandomColorCallbackConstMeta,
+      argValues: [dartCallback],
+      apiImpl: this,
+      hint: hint,
+    ));
+  }
+
+  TaskConstMeta get kGetRandomColorCallbackConstMeta => const TaskConstMeta(
+        debugName: "get_random_color_callback",
+        argNames: ["dartCallback"],
+      );
+
+  @override
+  ColorModel getRandomColorSync({dynamic hint}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 4)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_color_model,
+        decodeErrorData: null,
+      ),
+      constMeta: kGetRandomColorSyncConstMeta,
+      argValues: [],
+      apiImpl: this,
+      hint: hint,
+    ));
+  }
+
+  TaskConstMeta get kGetRandomColorSyncConstMeta => const TaskConstMeta(
+        debugName: "get_random_color_sync",
+        argNames: [],
+      );
 
   @override
   String greet({required String name, dynamic hint}) {
@@ -125,10 +234,62 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         argNames: [],
       );
 
+  Future<void> Function(int, dynamic)
+      encode_DartFn_Inputs_color_model_Output_unit(
+          FutureOr<void> Function(ColorModel) raw) {
+    return (callId, rawArg0) async {
+      final arg0 = dco_decode_color_model(rawArg0);
+
+      final rawOutput = await raw(arg0);
+
+      final serializer = SseSerializer(generalizedFrbRustBinding);
+      sse_encode_unit(rawOutput, serializer);
+      final output = serializer.intoRaw();
+
+      generalizedFrbRustBinding.dartFnDeliverOutput(
+          callId: callId,
+          ptr: output.ptr,
+          rustVecLen: output.rustVecLen,
+          dataLen: output.dataLen);
+    };
+  }
+
+  @protected
+  FutureOr<void> Function(ColorModel)
+      dco_decode_DartFn_Inputs_color_model_Output_unit(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    throw UnimplementedError('');
+  }
+
+  @protected
+  Object dco_decode_DartOpaque(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return decodeDartOpaque(raw, generalizedFrbRustBinding);
+  }
+
   @protected
   String dco_decode_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as String;
+  }
+
+  @protected
+  ColorModel dco_decode_box_autoadd_color_model(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_color_model(raw);
+  }
+
+  @protected
+  ColorModel dco_decode_color_model(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return ColorModel(
+      red: dco_decode_u_8(arr[0]),
+      green: dco_decode_u_8(arr[1]),
+      blue: dco_decode_u_8(arr[2]),
+    );
   }
 
   @protected
@@ -150,10 +311,38 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  int dco_decode_usize(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeI64OrU64(raw);
+  }
+
+  @protected
+  Object sse_decode_DartOpaque(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_usize(deserializer);
+    return decodeDartOpaque(inner, generalizedFrbRustBinding);
+  }
+
+  @protected
   String sse_decode_String(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_list_prim_u_8_strict(deserializer);
     return utf8.decoder.convert(inner);
+  }
+
+  @protected
+  ColorModel sse_decode_box_autoadd_color_model(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_color_model(deserializer));
+  }
+
+  @protected
+  ColorModel sse_decode_color_model(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_red = sse_decode_u_8(deserializer);
+    var var_green = sse_decode_u_8(deserializer);
+    var var_blue = sse_decode_u_8(deserializer);
+    return ColorModel(red: var_red, green: var_green, blue: var_blue);
   }
 
   @protected
@@ -175,6 +364,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  int sse_decode_usize(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint64();
+  }
+
+  @protected
   int sse_decode_i_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getInt32();
@@ -187,9 +382,41 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_DartFn_Inputs_color_model_Output_unit(
+      FutureOr<void> Function(ColorModel) self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_DartOpaque(
+        encode_DartFn_Inputs_color_model_Output_unit(self), serializer);
+  }
+
+  @protected
+  void sse_encode_DartOpaque(Object self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+        PlatformPointerUtil.ptrToInt(encodeDartOpaque(
+            self, portManager.dartHandlerPort, generalizedFrbRustBinding)),
+        serializer);
+  }
+
+  @protected
   void sse_encode_String(String self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_color_model(
+      ColorModel self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_color_model(self, serializer);
+  }
+
+  @protected
+  void sse_encode_color_model(ColorModel self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_8(self.red, serializer);
+    sse_encode_u_8(self.green, serializer);
+    sse_encode_u_8(self.blue, serializer);
   }
 
   @protected
@@ -209,6 +436,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   void sse_encode_unit(void self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
+  }
+
+  @protected
+  void sse_encode_usize(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint64(self);
   }
 
   @protected
