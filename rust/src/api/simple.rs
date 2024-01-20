@@ -1,10 +1,14 @@
+use cancel::{Canceled, Token};
 use core::time;
-use std::thread;
-
-use flutter_rust_bridge::{frb, transfer, DartFnFuture};
-use rand::Rng;
-
 use crate::frb_generated::{StreamSink, FLUTTER_RUST_BRIDGE_HANDLER};
+use flutter_rust_bridge::{frb, transfer, DartFnFuture};
+use lazy_static::lazy_static;
+use rand::Rng;
+use std::{sync::Mutex, thread};
+
+lazy_static!{
+    static ref COLOR_SINK_CANCEL: Mutex<Option<Token>> = Mutex::new(None);
+}
 
 #[flutter_rust_bridge::frb(sync)] // Synchronous mode for simplicity of the demo
 pub fn greet(name: String) -> String {
@@ -52,12 +56,26 @@ pub async fn get_random_color_callback(dart_callback: impl Fn(ColorModel) -> Dar
 }
 
 pub fn get_random_color_sink(sink: StreamSink<ColorModel>) {
+    {
+        let mut token = COLOR_SINK_CANCEL.lock().unwrap();
+        *token = Some(Token::new());
+    }
     FLUTTER_RUST_BRIDGE_HANDLER.thread_pool().0.execute(
         transfer!(|| {
             loop {
+                let token = COLOR_SINK_CANCEL.lock().unwrap();
+                if token.as_ref().unwrap().is_canceled() {
+                    return;
+                }
                 sink.add(ColorModel::random()).unwrap();
                 thread::sleep(time::Duration::from_millis(1500));
             };
         })
     );
+}
+
+#[frb(sync)]
+pub fn cancel_get_random_color_sink() {
+    let token = COLOR_SINK_CANCEL.lock().unwrap();
+    token.as_ref().unwrap().cancel();
 }

@@ -7,5 +7,7 @@ edition = "2021"
 crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
+cancel = "0.1.0"
 flutter_rust_bridge = "=2.0.0-dev.20"
+lazy_static = "1.4.0"
 rand = "0.8.5"

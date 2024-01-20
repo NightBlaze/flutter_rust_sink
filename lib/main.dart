@@ -32,6 +32,7 @@ class ColorBox extends StatefulWidget {
 
 class ColorBoxState extends State<ColorBox> {
   MaterialColor _color = Colors.green;
+  int _color_sink_count = 0;
 
   MaterialColor _getMaterialColor(int red, int green, int blue) {
     final color = Color.fromRGBO(red, green, blue, 1);
@@ -79,25 +80,31 @@ class ColorBoxState extends State<ColorBox> {
 
   void _setColorSink() {
     getRandomColorSink().listen((newColor) {
-      print("_setColorSink: got new color ${newColor.description()}");
+      _color_sink_count++;
+      print(
+          "_setColorSink number $_color_sink_count: got new color ${newColor.description()}");
       setState(() {
         _color = _getMaterialColor(newColor.red, newColor.green, newColor.blue);
       });
+      if (_color_sink_count == 10) {
+        cancelGetRandomColorSink();
+        print("_setColorSink cancelled");
+      }
     });
   }
 
   ColorBoxState() {
-    Future.delayed(const Duration(milliseconds: 500), () {
-      _setColorSync();
-    });
+    // Future.delayed(const Duration(milliseconds: 500), () {
+    //   _setColorSync();
+    // });
 
-    Future.delayed(const Duration(milliseconds: 1000), () {
-      _setColorAsync();
-    });
+    // Future.delayed(const Duration(milliseconds: 1000), () {
+    //   _setColorAsync();
+    // });
 
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      _setColorCallback();
-    });
+    // Future.delayed(const Duration(milliseconds: 1500), () {
+    //   _setColorCallback();
+    // });
 
     Future.delayed(const Duration(milliseconds: 500), () {
       _setColorSink();

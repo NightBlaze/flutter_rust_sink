@@ -66,6 +66,34 @@ fn wire_ColorModel_description_impl(
         },
     )
 }
+fn wire_cancel_get_random_color_sink_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "cancel_get_random_color_sink",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            transform_result_sse((move || {
+                Result::<_, ()>::Ok(crate::api::simple::cancel_get_random_color_sink())
+            })())
+        },
+    )
+}
 fn wire_get_random_color_async_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -386,7 +414,8 @@ fn pde_ffi_dispatcher_sync_impl(
     data_len: i32,
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     match func_id {
-        7 => wire_ColorModel_description_impl(ptr, rust_vec_len, data_len),
+        8 => wire_ColorModel_description_impl(ptr, rust_vec_len, data_len),
+        7 => wire_cancel_get_random_color_sink_impl(ptr, rust_vec_len, data_len),
         4 => wire_get_random_color_sync_impl(ptr, rust_vec_len, data_len),
         1 => wire_greet_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
