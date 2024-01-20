@@ -77,6 +77,15 @@ class ColorBoxState extends State<ColorBox> {
     });
   }
 
+  void _setColorSink() {
+    getRandomColorSink().listen((newColor) {
+      print("_setColorSink: got new color ${newColor.description()}");
+      setState(() {
+        _color = _getMaterialColor(newColor.red, newColor.green, newColor.blue);
+      });
+    });
+  }
+
   ColorBoxState() {
     Future.delayed(const Duration(milliseconds: 500), () {
       _setColorSync();
@@ -88,6 +97,10 @@ class ColorBoxState extends State<ColorBox> {
 
     Future.delayed(const Duration(milliseconds: 1500), () {
       _setColorCallback();
+    });
+
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _setColorSink();
     });
   }
 

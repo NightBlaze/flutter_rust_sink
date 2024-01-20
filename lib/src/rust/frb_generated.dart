@@ -72,6 +72,8 @@ abstract class RustLibApi extends BaseApi {
       {required FutureOr<void> Function(ColorModel) dartCallback,
       dynamic hint});
 
+  Stream<ColorModel> getRandomColorSink({dynamic hint});
+
   ColorModel getRandomColorSync({dynamic hint});
 
   String greet({required String name, dynamic hint});
@@ -93,7 +95,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_box_autoadd_color_model(that, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6)!;
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 7)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -161,6 +163,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kGetRandomColorCallbackConstMeta => const TaskConstMeta(
         debugName: "get_random_color_callback",
         argNames: ["dartCallback"],
+      );
+
+  @override
+  Stream<ColorModel> getRandomColorSink({dynamic hint}) {
+    return handler.executeStream(StreamTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 6, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_color_model,
+        decodeErrorData: null,
+      ),
+      constMeta: kGetRandomColorSinkConstMeta,
+      argValues: [],
+      apiImpl: this,
+      hint: hint,
+    ));
+  }
+
+  TaskConstMeta get kGetRandomColorSinkConstMeta => const TaskConstMeta(
+        debugName: "get_random_color_sink",
+        argNames: [],
       );
 
   @override

@@ -21,6 +21,9 @@ Future<void> getRandomColorCallback(
     RustLib.instance.api
         .getRandomColorCallback(dartCallback: dartCallback, hint: hint);
 
+Stream<ColorModel> getRandomColorSink({dynamic hint}) =>
+    RustLib.instance.api.getRandomColorSink(hint: hint);
+
 class ColorModel {
   final int red;
   final int green;
