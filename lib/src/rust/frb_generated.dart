@@ -3,6 +3,8 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
+import 'api/actors/actors_manager.dart';
+import 'api/actors/color_box_actor.dart';
 import 'api/simple.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -64,19 +66,23 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 }
 
 abstract class RustLibApi extends BaseApi {
+  int generateActorId({dynamic hint});
+
   String colorModelDescription({required ColorModel that, dynamic hint});
 
-  void cancelGetRandomColorSink({dynamic hint});
+  Future<void> colorBoxCancelChangeColorSink(
+      {required int actorId, dynamic hint});
 
-  Future<ColorModel> getRandomColorAsync({dynamic hint});
+  Future<ColorModel?> colorBoxChangeColor({required int actorId, dynamic hint});
 
-  Future<void> getRandomColorCallback(
-      {required FutureOr<void> Function(ColorModel) dartCallback,
-      dynamic hint});
+  Stream<ColorModel> colorBoxChangeColorSink(
+      {required int actorId, dynamic hint});
 
-  Stream<ColorModel> getRandomColorSink({dynamic hint});
+  Future<void> colorBoxDelete({required int actorId, dynamic hint});
 
-  ColorModel getRandomColorSync({dynamic hint});
+  Future<String?> colorBoxLike({required int actorId, dynamic hint});
+
+  Future<void> colorBoxNew({required int actorId, dynamic hint});
 
   String greet({required String name, dynamic hint});
 
@@ -90,6 +96,29 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     required super.generalizedFrbRustBinding,
     required super.portManager,
   });
+
+  @override
+  int generateActorId({dynamic hint}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 1)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_u_64,
+        decodeErrorData: null,
+      ),
+      constMeta: kGenerateActorIdConstMeta,
+      argValues: [],
+      apiImpl: this,
+      hint: hint,
+    ));
+  }
+
+  TaskConstMeta get kGenerateActorIdConstMeta => const TaskConstMeta(
+        debugName: "generate_actor_id",
+        argNames: [],
+      );
 
   @override
   String colorModelDescription({required ColorModel that, dynamic hint}) {
@@ -116,125 +145,157 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  void cancelGetRandomColorSink({dynamic hint}) {
-    return handler.executeSync(SyncTask(
-      callFfi: () {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 7)!;
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: null,
-      ),
-      constMeta: kCancelGetRandomColorSinkConstMeta,
-      argValues: [],
-      apiImpl: this,
-      hint: hint,
-    ));
-  }
-
-  TaskConstMeta get kCancelGetRandomColorSinkConstMeta => const TaskConstMeta(
-        debugName: "cancel_get_random_color_sink",
-        argNames: [],
-      );
-
-  @override
-  Future<ColorModel> getRandomColorAsync({dynamic hint}) {
+  Future<void> colorBoxCancelChangeColorSink(
+      {required int actorId, dynamic hint}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 3, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_color_model,
-        decodeErrorData: null,
-      ),
-      constMeta: kGetRandomColorAsyncConstMeta,
-      argValues: [],
-      apiImpl: this,
-      hint: hint,
-    ));
-  }
-
-  TaskConstMeta get kGetRandomColorAsyncConstMeta => const TaskConstMeta(
-        debugName: "get_random_color_async",
-        argNames: [],
-      );
-
-  @override
-  Future<void> getRandomColorCallback(
-      {required FutureOr<void> Function(ColorModel) dartCallback,
-      dynamic hint}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_DartFn_Inputs_color_model_Output_unit(
-            dartCallback, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 5, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: null,
-      ),
-      constMeta: kGetRandomColorCallbackConstMeta,
-      argValues: [dartCallback],
-      apiImpl: this,
-      hint: hint,
-    ));
-  }
-
-  TaskConstMeta get kGetRandomColorCallbackConstMeta => const TaskConstMeta(
-        debugName: "get_random_color_callback",
-        argNames: ["dartCallback"],
-      );
-
-  @override
-  Stream<ColorModel> getRandomColorSink({dynamic hint}) {
-    return handler.executeStream(StreamTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_u_64(actorId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
             funcId: 6, port: port_);
       },
       codec: SseCodec(
-        decodeSuccessData: sse_decode_color_model,
+        decodeSuccessData: sse_decode_unit,
         decodeErrorData: null,
       ),
-      constMeta: kGetRandomColorSinkConstMeta,
-      argValues: [],
+      constMeta: kColorBoxCancelChangeColorSinkConstMeta,
+      argValues: [actorId],
       apiImpl: this,
       hint: hint,
     ));
   }
 
-  TaskConstMeta get kGetRandomColorSinkConstMeta => const TaskConstMeta(
-        debugName: "get_random_color_sink",
-        argNames: [],
+  TaskConstMeta get kColorBoxCancelChangeColorSinkConstMeta =>
+      const TaskConstMeta(
+        debugName: "color_box_cancel_change_color_sink",
+        argNames: ["actorId"],
       );
 
   @override
-  ColorModel getRandomColorSync({dynamic hint}) {
-    return handler.executeSync(SyncTask(
-      callFfi: () {
+  Future<ColorModel?> colorBoxChangeColor(
+      {required int actorId, dynamic hint}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 4)!;
+        sse_encode_u_64(actorId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 4, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_opt_box_autoadd_color_model,
+        decodeErrorData: null,
+      ),
+      constMeta: kColorBoxChangeColorConstMeta,
+      argValues: [actorId],
+      apiImpl: this,
+      hint: hint,
+    ));
+  }
+
+  TaskConstMeta get kColorBoxChangeColorConstMeta => const TaskConstMeta(
+        debugName: "color_box_change_color",
+        argNames: ["actorId"],
+      );
+
+  @override
+  Stream<ColorModel> colorBoxChangeColorSink(
+      {required int actorId, dynamic hint}) {
+    return handler.executeStream(StreamTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_u_64(actorId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 5, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_color_model,
         decodeErrorData: null,
       ),
-      constMeta: kGetRandomColorSyncConstMeta,
-      argValues: [],
+      constMeta: kColorBoxChangeColorSinkConstMeta,
+      argValues: [actorId],
       apiImpl: this,
       hint: hint,
     ));
   }
 
-  TaskConstMeta get kGetRandomColorSyncConstMeta => const TaskConstMeta(
-        debugName: "get_random_color_sync",
-        argNames: [],
+  TaskConstMeta get kColorBoxChangeColorSinkConstMeta => const TaskConstMeta(
+        debugName: "color_box_change_color_sink",
+        argNames: ["actorId"],
+      );
+
+  @override
+  Future<void> colorBoxDelete({required int actorId, dynamic hint}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_u_64(actorId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 3, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kColorBoxDeleteConstMeta,
+      argValues: [actorId],
+      apiImpl: this,
+      hint: hint,
+    ));
+  }
+
+  TaskConstMeta get kColorBoxDeleteConstMeta => const TaskConstMeta(
+        debugName: "color_box_delete",
+        argNames: ["actorId"],
+      );
+
+  @override
+  Future<String?> colorBoxLike({required int actorId, dynamic hint}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_u_64(actorId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 7, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_opt_String,
+        decodeErrorData: null,
+      ),
+      constMeta: kColorBoxLikeConstMeta,
+      argValues: [actorId],
+      apiImpl: this,
+      hint: hint,
+    ));
+  }
+
+  TaskConstMeta get kColorBoxLikeConstMeta => const TaskConstMeta(
+        debugName: "color_box_like",
+        argNames: ["actorId"],
+      );
+
+  @override
+  Future<void> colorBoxNew({required int actorId, dynamic hint}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_u_64(actorId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 2, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kColorBoxNewConstMeta,
+      argValues: [actorId],
+      apiImpl: this,
+      hint: hint,
+    ));
+  }
+
+  TaskConstMeta get kColorBoxNewConstMeta => const TaskConstMeta(
+        debugName: "color_box_new",
+        argNames: ["actorId"],
       );
 
   @override
@@ -243,7 +304,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(name, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 1)!;
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 9)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -267,7 +328,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 2, port: port_);
+            funcId: 10, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -284,39 +345,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         debugName: "init_app",
         argNames: [],
       );
-
-  Future<void> Function(int, dynamic)
-      encode_DartFn_Inputs_color_model_Output_unit(
-          FutureOr<void> Function(ColorModel) raw) {
-    return (callId, rawArg0) async {
-      final arg0 = dco_decode_color_model(rawArg0);
-
-      final rawOutput = await raw(arg0);
-
-      final serializer = SseSerializer(generalizedFrbRustBinding);
-      sse_encode_unit(rawOutput, serializer);
-      final output = serializer.intoRaw();
-
-      generalizedFrbRustBinding.dartFnDeliverOutput(
-          callId: callId,
-          ptr: output.ptr,
-          rustVecLen: output.rustVecLen,
-          dataLen: output.dataLen);
-    };
-  }
-
-  @protected
-  FutureOr<void> Function(ColorModel)
-      dco_decode_DartFn_Inputs_color_model_Output_unit(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    throw UnimplementedError('');
-  }
-
-  @protected
-  Object dco_decode_DartOpaque(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return decodeDartOpaque(raw, generalizedFrbRustBinding);
-  }
 
   @protected
   String dco_decode_String(dynamic raw) {
@@ -350,6 +378,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  String? dco_decode_opt_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_String(raw);
+  }
+
+  @protected
+  ColorModel? dco_decode_opt_box_autoadd_color_model(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_color_model(raw);
+  }
+
+  @protected
+  int dco_decode_u_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeI64OrU64(raw);
+  }
+
+  @protected
   int dco_decode_u_8(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as int;
@@ -359,19 +405,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void dco_decode_unit(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return;
-  }
-
-  @protected
-  int dco_decode_usize(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dcoDecodeI64OrU64(raw);
-  }
-
-  @protected
-  Object sse_decode_DartOpaque(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var inner = sse_decode_usize(deserializer);
-    return decodeDartOpaque(inner, generalizedFrbRustBinding);
   }
 
   @protected
@@ -404,6 +437,35 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  String? sse_decode_opt_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_String(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  ColorModel? sse_decode_opt_box_autoadd_color_model(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_color_model(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  int sse_decode_u_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint64();
+  }
+
+  @protected
   int sse_decode_u_8(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getUint8();
@@ -412,12 +474,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   void sse_decode_unit(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-  }
-
-  @protected
-  int sse_decode_usize(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getUint64();
   }
 
   @protected
@@ -430,23 +486,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   bool sse_decode_bool(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getUint8() != 0;
-  }
-
-  @protected
-  void sse_encode_DartFn_Inputs_color_model_Output_unit(
-      FutureOr<void> Function(ColorModel) self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_DartOpaque(
-        encode_DartFn_Inputs_color_model_Output_unit(self), serializer);
-  }
-
-  @protected
-  void sse_encode_DartOpaque(Object self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-        PlatformPointerUtil.ptrToInt(encodeDartOpaque(
-            self, portManager.dartHandlerPort, generalizedFrbRustBinding)),
-        serializer);
   }
 
   @protected
@@ -479,6 +518,33 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_String(String? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_String(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_color_model(
+      ColorModel? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_color_model(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_u_64(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint64(self);
+  }
+
+  @protected
   void sse_encode_u_8(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putUint8(self);
@@ -487,12 +553,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   void sse_encode_unit(void self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-  }
-
-  @protected
-  void sse_encode_usize(int self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putUint64(self);
   }
 
   @protected

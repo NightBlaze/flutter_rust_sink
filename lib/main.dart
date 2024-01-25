@@ -1,4 +1,8 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_rust_sink/src/rust/api/actors/actors_manager.dart';
+import 'package:flutter_rust_sink/src/rust/api/actors/color_box_actor.dart';
 import 'package:flutter_rust_sink/src/rust/api/simple.dart';
 import 'package:flutter_rust_sink/src/rust/frb_generated.dart';
 
@@ -10,16 +14,76 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  Widget _getRow() {
+    List<Widget> list = List.empty(growable: true);
+    for (var i = 0; i < 1; i++) {
+      list.add(
+        const Padding(
+          padding: EdgeInsets.all(2),
+          child: ColorBoxContainer(),
+        ),
+      );
+    }
+    return Row(children: list);
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(title: const Text('flutter_rust_bridge sink demo')),
-        body: const Center(
-          child: ColorBox(),
+        body: Center(
+          child: Column(
+            children: [
+              _getRow(),
+              // _getRow(),
+              // _getRow(),
+              // _getRow(),
+              // _getRow(),
+              // _getRow(),
+              // _getRow(),
+              // _getRow(),
+              // _getRow(),
+              // _getRow(),
+            ],
+          ),
         ),
       ),
     );
+  }
+}
+
+class ColorBoxContainer extends StatefulWidget {
+  const ColorBoxContainer({super.key});
+
+  @override
+  createState() => ColorBoxContainerState();
+}
+
+class ColorBoxContainerState extends State<ColorBoxContainer> {
+  bool _isVisible = true;
+
+  ColorBoxContainerState() {
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      setState(() {
+        _isVisible = false;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isVisible) {
+      return const ColorBox();
+    } else {
+      return SizedBox(
+        width: 50,
+        height: 50,
+        child: Container(
+          color: Colors.amber,
+        ),
+      );
+    }
   }
 }
 
@@ -31,8 +95,10 @@ class ColorBox extends StatefulWidget {
 }
 
 class ColorBoxState extends State<ColorBox> {
+  final _actorId = generateActorId();
   MaterialColor _color = Colors.green;
-  int _color_sink_count = 0;
+  String _likesCount = "0";
+  int _colorSinkCount = 0;
 
   MaterialColor _getMaterialColor(int red, int green, int blue) {
     final color = Color.fromRGBO(red, green, blue, 1);
@@ -53,68 +119,80 @@ class ColorBoxState extends State<ColorBox> {
     return MaterialColor(color.value, shades);
   }
 
-  void _setColorSync() {
-    var newColor = getRandomColorSync();
-    print("_setColorSync: got new color ${newColor.description()}");
+  void _changeColor() async {
+    var newColor = await colorBoxChangeColor(actorId: _actorId);
+    if (newColor == null) {
+      print("_changeColor: got null color");
+      return;
+    }
+    print("_changeColor: got new color ${newColor.description()}");
     setState(() {
       _color = _getMaterialColor(newColor.red, newColor.green, newColor.blue);
     });
   }
 
-  void _setColorAsync() async {
-    var newColor = await getRandomColorAsync();
-    print("_setColorAsync: got new color ${newColor.description()}");
-    setState(() {
-      _color = _getMaterialColor(newColor.red, newColor.green, newColor.blue);
-    });
-  }
-
-  void _setColorCallback() async {
-    await getRandomColorCallback(dartCallback: (newColor) {
-      print("_setColorCallback: got new color ${newColor.description()}");
-      setState(() {
-        _color = _getMaterialColor(newColor.red, newColor.green, newColor.blue);
-      });
-    });
-  }
-
-  void _setColorSink() {
-    getRandomColorSink().listen((newColor) {
-      _color_sink_count++;
+  void _changeColorSink() {
+    colorBoxChangeColorSink(actorId: _actorId).listen((newColor) async {
+      _colorSinkCount++;
       print(
-          "_setColorSink number $_color_sink_count: got new color ${newColor.description()}");
+          "$_actorId _changeColorSink number $_colorSinkCount: got new color ${newColor.description()}");
       setState(() {
         _color = _getMaterialColor(newColor.red, newColor.green, newColor.blue);
       });
-      if (_color_sink_count == 10) {
-        cancelGetRandomColorSink();
-        print("_setColorSink cancelled");
-      }
+      // if (_colorSinkCount >= 10) {
+      //   await colorBoxCancelChangeColorSink(actorId: _actorId);
+      //   print("_changeColorSink cancelled");
+      // }
+    });
+  }
+
+  void _likeButtonDidPress() async {
+    var newLikesCount = await colorBoxLike(actorId: _actorId);
+    if (newLikesCount == null) {
+      print("_likeButtonDidPress: got null");
+      return;
+    }
+    setState(() {
+      _likesCount = newLikesCount;
     });
   }
 
   ColorBoxState() {
-    // Future.delayed(const Duration(milliseconds: 500), () {
-    //   _setColorSync();
-    // });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await colorBoxNew(actorId: _actorId);
+    });
 
-    // Future.delayed(const Duration(milliseconds: 1000), () {
-    //   _setColorAsync();
-    // });
-
-    // Future.delayed(const Duration(milliseconds: 1500), () {
-    //   _setColorCallback();
-    // });
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      _changeColor();
+    });
 
     Future.delayed(const Duration(milliseconds: 500), () {
-      _setColorSink();
+      _changeColorSink();
     });
   }
 
   @override
+  void dispose() {
+    print("dispose _actorId: $_actorId");
+    colorBoxDelete(actorId: _actorId);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      color: _color,
+    return SizedBox(
+      width: 50,
+      height: 50,
+      child: Container(
+        color: _color,
+        child: TextButton(
+          style: TextButton.styleFrom(
+            textStyle: const TextStyle(fontSize: 10),
+          ),
+          onPressed: _likeButtonDidPress,
+          child: Text(_likesCount),
+        ),
+      ),
     );
   }
 }

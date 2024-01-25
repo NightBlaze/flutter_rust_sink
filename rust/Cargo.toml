@@ -8,6 +8,8 @@ crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
 cancel = "0.1.0"
-flutter_rust_bridge = "=2.0.0-dev.20"
+flutter_rust_bridge = { version = "=2.0.0-dev.20", features = ["log"] }
 lazy_static = "1.4.0"
 rand = "0.8.5"
+safety-guard = "0.1.9"
+tokio = { version = "1.35.1", features = ["full"] }
