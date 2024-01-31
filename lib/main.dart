@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:isolate';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_rust_sink/src/rust/api/actors/actors_manager.dart';
@@ -64,11 +65,11 @@ class ColorBoxContainerState extends State<ColorBoxContainer> {
   bool _isVisible = true;
 
   ColorBoxContainerState() {
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      setState(() {
-        _isVisible = false;
-      });
-    });
+    // Future.delayed(const Duration(milliseconds: 1500), () {
+    //   setState(() {
+    //     _isVisible = false;
+    //   });
+    // });
   }
 
   @override
@@ -96,6 +97,7 @@ class ColorBox extends StatefulWidget {
 
 class ColorBoxState extends State<ColorBox> {
   final _actorId = generateActorId();
+  final _actor = ColorBoxActor.newColorBoxActor();
   MaterialColor _color = Colors.green;
   String _likesCount = "0";
   int _colorSinkCount = 0;
@@ -119,62 +121,79 @@ class ColorBoxState extends State<ColorBox> {
     return MaterialColor(color.value, shades);
   }
 
-  void _changeColor() async {
-    var newColor = await colorBoxChangeColor(actorId: _actorId);
-    if (newColor == null) {
-      print("_changeColor: got null color");
-      return;
-    }
-    print("_changeColor: got new color ${newColor.description()}");
+  void _changeColorSync() {
+    var newColor = _actor.changeColor();
+    print("_changeColorSync: got new color ${newColor.description()}");
     setState(() {
       _color = _getMaterialColor(newColor.red, newColor.green, newColor.blue);
     });
   }
 
+  void _changeColor() async {
+    //   var newColor = await colorBoxChangeColor(actorId: _actorId);
+    //   if (newColor == null) {
+    //     print("_changeColor: got null color");
+    //     return;
+    //   }
+    //   print("_changeColor: got new color ${newColor.description()}");
+    //   setState(() {
+    //     _color = _getMaterialColor(newColor.red, newColor.green, newColor.blue);
+    //   });
+  }
+
   void _changeColorSink() {
-    colorBoxChangeColorSink(actorId: _actorId).listen((newColor) async {
-      _colorSinkCount++;
-      print(
-          "$_actorId _changeColorSink number $_colorSinkCount: got new color ${newColor.description()}");
-      setState(() {
-        _color = _getMaterialColor(newColor.red, newColor.green, newColor.blue);
-      });
-      // if (_colorSinkCount >= 10) {
-      //   await colorBoxCancelChangeColorSink(actorId: _actorId);
-      //   print("_changeColorSink cancelled");
-      // }
-    });
+    // colorBoxChangeColorSink(actorId: _actorId).listen((newColor) async {
+    //   _colorSinkCount++;
+    //   print(
+    //       "$_actorId _changeColorSink number $_colorSinkCount: got new color ${newColor.description()}");
+    // setState(() {
+    //   _color = _getMaterialColor(newColor.red, newColor.green, newColor.blue);
+    // });
+    //   // if (_colorSinkCount >= 10) {
+    //   //   await colorBoxCancelChangeColorSink(actorId: _actorId);
+    //   //   print("_changeColorSink cancelled");
+    //   // }
+    // });
   }
 
   void _likeButtonDidPress() async {
-    var newLikesCount = await colorBoxLike(actorId: _actorId);
-    if (newLikesCount == null) {
-      print("_likeButtonDidPress: got null");
-      return;
-    }
-    setState(() {
-      _likesCount = newLikesCount;
-    });
+    // var newLikesCount = await colorBoxLike(actorId: _actorId);
+    // if (newLikesCount == null) {
+    //   print("_likeButtonDidPress: got null");
+    //   return;
+    // }
+    // setState(() {
+    //   _likesCount = newLikesCount;
+    // });
   }
 
   ColorBoxState() {
+    _actor.setColorSink().listen((newColor) {
+      print("setColorSink: got new color ${newColor.description()}");
+      setState(() {
+        _color = _getMaterialColor(newColor.red, newColor.green, newColor.blue);
+      });
+    });
+
+    _actor.startChangeColor();
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await colorBoxNew(actorId: _actorId);
+      // await colorBoxNew(actorId: _actorId);
     });
 
     Future.delayed(const Duration(milliseconds: 1500), () {
-      _changeColor();
+      _changeColorSync();
     });
 
-    Future.delayed(const Duration(milliseconds: 500), () {
-      _changeColorSink();
+    Future.delayed(const Duration(milliseconds: 10000), () async {
+      await _actor.stopChangeColor();
     });
   }
 
   @override
   void dispose() {
-    print("dispose _actorId: $_actorId");
-    colorBoxDelete(actorId: _actorId);
+    // print("dispose _actorId: $_actorId");
+    // colorBoxDelete(actorId: _actorId);
     super.dispose();
   }
 
