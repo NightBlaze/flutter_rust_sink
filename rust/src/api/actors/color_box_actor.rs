@@ -1,5 +1,5 @@
-use crate::frb_generated::{StreamSink, FLUTTER_RUST_BRIDGE_HANDLER};
-use flutter_rust_bridge::{frb, spawn_blocking_with, DartFnFuture};
+use crate::{api::simple::debug_log, frb_generated::{StreamSink, FLUTTER_RUST_BRIDGE_HANDLER}};
+use flutter_rust_bridge::{frb, spawn, spawn_blocking_with, DartFnFuture};
 use lazy_static::lazy_static;
 use rand::Rng;
 use std::{collections::HashMap, io::Write, sync::Arc};
@@ -31,13 +31,13 @@ impl ColorModel {
     }
 }
 
+#[derive(Clone)]
 #[frb(opaque)]
 pub struct ColorBoxActor {
     id: u64,
     inner: Arc<tokio::sync::RwLock<ColorBoxActorInner>>,
 }
 
-// #[frb(opaque)]
 struct ColorBoxActorInner {
     color: ColorModel,
     color_cancel_token: cancel::Token,
@@ -56,6 +56,7 @@ impl ColorBoxActor {
     }
 
     pub async fn set_color_sink(&self, color_sink: StreamSink<ColorModel>) {
+        debug_log("😄 set_color_sink".to_string());
         let mut inner_locked = self.inner.write().await;
         inner_locked.color_sink = Some(color_sink);
     }
@@ -65,10 +66,9 @@ impl ColorBoxActor {
         ColorModel::random()
     }
 
-    #[frb(sync)]
-    pub fn start_change_color(&self) {
+    pub async fn start_change_color(&self) {
         let inner = self.inner.clone();
-        tokio::spawn(async move {
+        let _ =spawn(async move {
             let mut inner_locked = inner.write().await;
             // inner_locked.start_change_color_inner();
             if inner_locked.color_cancel_token.is_canceled() {
@@ -78,7 +78,7 @@ impl ColorBoxActor {
             inner_locked.color = ColorModel::random();
             inner_locked.color_sink.as_ref().unwrap().add(inner_locked.color).unwrap();
             tokio::time::sleep(tokio::time::Duration::from_millis(1500)).await;
-        });
+        }).await;
     }
 
     pub async fn stop_change_color(&self) {
@@ -86,10 +86,9 @@ impl ColorBoxActor {
         inner_locked.color_cancel_token.cancel();
     }
 
-    #[frb(sync)]
-    pub fn toggle_like(&self) {
+    pub async fn toggle_like(&self) {
         let inner = self.inner.clone();
-        tokio::spawn(async move {
+        let _ = spawn(async move {
             let mut inner_locked = inner.write().await;
             if inner_locked.is_liked {
                 inner_locked.likes_count -= 1;
@@ -98,15 +97,16 @@ impl ColorBoxActor {
                 inner_locked.likes_count += 1;
                 inner_locked.is_liked = true;
             }
-        });
+        }).await;
     }
 }
 
 impl Drop for ColorBoxActor {
     fn drop(&mut self) {
-        tokio::runtime::Handle::current().block_on(async {
-            self.stop_change_color().await;
-        });
+        let cloned = self.clone();
+        spawn_blocking_with(|| async move {
+            cloned.stop_change_color().await;
+        }, FLUTTER_RUST_BRIDGE_HANDLER.thread_pool());
     }
 }
 

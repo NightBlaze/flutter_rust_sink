@@ -1,6 +1,5 @@
 import 'dart:ffi';
 import 'dart:isolate';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_rust_sink/src/rust/api/actors/actors_manager.dart';
 import 'package:flutter_rust_sink/src/rust/api/actors/color_box_actor.dart';
@@ -9,7 +8,14 @@ import 'package:flutter_rust_sink/src/rust/frb_generated.dart';
 
 Future<void> main() async {
   await RustLib.init();
+  createLogStream().listen((message) {
+    debugLog(message);
+  });
   runApp(const MyApp());
+}
+
+debugLog(String message) {
+  print(message);
 }
 
 class MyApp extends StatelessWidget {
@@ -123,7 +129,7 @@ class ColorBoxState extends State<ColorBox> {
 
   void _changeColorSync() {
     var newColor = _actor.changeColor();
-    print("_changeColorSync: got new color ${newColor.description()}");
+    debugLog("_changeColorSync: got new color ${newColor.description()}");
     setState(() {
       _color = _getMaterialColor(newColor.red, newColor.green, newColor.blue);
     });
@@ -132,10 +138,10 @@ class ColorBoxState extends State<ColorBox> {
   void _changeColor() async {
     //   var newColor = await colorBoxChangeColor(actorId: _actorId);
     //   if (newColor == null) {
-    //     print("_changeColor: got null color");
+    //     debugLog("_changeColor: got null color");
     //     return;
     //   }
-    //   print("_changeColor: got new color ${newColor.description()}");
+    //   debugLog("_changeColor: got new color ${newColor.description()}");
     //   setState(() {
     //     _color = _getMaterialColor(newColor.red, newColor.green, newColor.blue);
     //   });
@@ -144,14 +150,14 @@ class ColorBoxState extends State<ColorBox> {
   void _changeColorSink() {
     // colorBoxChangeColorSink(actorId: _actorId).listen((newColor) async {
     //   _colorSinkCount++;
-    //   print(
+    //   debugLog(
     //       "$_actorId _changeColorSink number $_colorSinkCount: got new color ${newColor.description()}");
     // setState(() {
     //   _color = _getMaterialColor(newColor.red, newColor.green, newColor.blue);
     // });
     //   // if (_colorSinkCount >= 10) {
     //   //   await colorBoxCancelChangeColorSink(actorId: _actorId);
-    //   //   print("_changeColorSink cancelled");
+    //   //   debugLog("_changeColorSink cancelled");
     //   // }
     // });
   }
@@ -159,7 +165,7 @@ class ColorBoxState extends State<ColorBox> {
   void _likeButtonDidPress() async {
     // var newLikesCount = await colorBoxLike(actorId: _actorId);
     // if (newLikesCount == null) {
-    //   print("_likeButtonDidPress: got null");
+    //   debugLog("_likeButtonDidPress: got null");
     //   return;
     // }
     // setState(() {
@@ -169,7 +175,7 @@ class ColorBoxState extends State<ColorBox> {
 
   ColorBoxState() {
     _actor.setColorSink().listen((newColor) {
-      print("setColorSink: got new color ${newColor.description()}");
+      debugLog("setColorSink: got new color ${newColor.description()}");
       setState(() {
         _color = _getMaterialColor(newColor.red, newColor.green, newColor.blue);
       });
@@ -192,7 +198,7 @@ class ColorBoxState extends State<ColorBox> {
 
   @override
   void dispose() {
-    // print("dispose _actorId: $_actorId");
+    // debugLog("dispose _actorId: $_actorId");
     // colorBoxDelete(actorId: _actorId);
     super.dispose();
   }

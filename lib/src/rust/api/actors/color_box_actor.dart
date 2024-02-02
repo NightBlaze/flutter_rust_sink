@@ -37,7 +37,7 @@ class ColorBoxActor extends RustOpaque {
         that: this,
       );
 
-  void startChangeColor({dynamic hint}) =>
+  Future<void> startChangeColor({dynamic hint}) =>
       RustLib.instance.api.colorBoxActorStartChangeColor(
         that: this,
       );
@@ -47,7 +47,7 @@ class ColorBoxActor extends RustOpaque {
         that: this,
       );
 
-  void toggleLike({dynamic hint}) =>
+  Future<void> toggleLike({dynamic hint}) =>
       RustLib.instance.api.colorBoxActorToggleLike(
         that: this,
       );

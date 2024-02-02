@@ -77,13 +77,14 @@ abstract class RustLibApi extends BaseApi {
   Stream<ColorModel> colorBoxActorSetColorSink(
       {required ColorBoxActor that, dynamic hint});
 
-  void colorBoxActorStartChangeColor(
+  Future<void> colorBoxActorStartChangeColor(
       {required ColorBoxActor that, dynamic hint});
 
   Future<void> colorBoxActorStopChangeColor(
       {required ColorBoxActor that, dynamic hint});
 
-  void colorBoxActorToggleLike({required ColorBoxActor that, dynamic hint});
+  Future<void> colorBoxActorToggleLike(
+      {required ColorBoxActor that, dynamic hint});
 
   String colorModelDescription({required ColorModel that, dynamic hint});
 
@@ -93,6 +94,10 @@ abstract class RustLibApi extends BaseApi {
   Future<ColorModel> colorModelRandom({dynamic hint});
 
   Future<User> userNew({required int id, dynamic hint});
+
+  Stream<String> createLogStream({dynamic hint});
+
+  Future<void> debugLog({required String message, dynamic hint});
 
   String greet({required String name, dynamic hint});
 
@@ -223,14 +228,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  void colorBoxActorStartChangeColor(
+  Future<void> colorBoxActorStartChangeColor(
       {required ColorBoxActor that, dynamic hint}) {
-    return handler.executeSync(SyncTask(
-      callFfi: () {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockColorBoxActor(
             that, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 8)!;
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 8, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -278,13 +284,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  void colorBoxActorToggleLike({required ColorBoxActor that, dynamic hint}) {
-    return handler.executeSync(SyncTask(
-      callFfi: () {
+  Future<void> colorBoxActorToggleLike(
+      {required ColorBoxActor that, dynamic hint}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedrust_asyncRwLockColorBoxActor(
             that, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 10)!;
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 10, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -402,6 +410,55 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kUserNewConstMeta => const TaskConstMeta(
         debugName: "User_new",
         argNames: ["id"],
+      );
+
+  @override
+  Stream<String> createLogStream({dynamic hint}) {
+    return handler.executeStream(StreamTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 14, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: null,
+      ),
+      constMeta: kCreateLogStreamConstMeta,
+      argValues: [],
+      apiImpl: this,
+      hint: hint,
+    ));
+  }
+
+  TaskConstMeta get kCreateLogStreamConstMeta => const TaskConstMeta(
+        debugName: "create_log_stream",
+        argNames: [],
+      );
+
+  @override
+  Future<void> debugLog({required String message, dynamic hint}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(message, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 15, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kDebugLogConstMeta,
+      argValues: [message],
+      apiImpl: this,
+      hint: hint,
+    ));
+  }
+
+  TaskConstMeta get kDebugLogConstMeta => const TaskConstMeta(
+        debugName: "debug_log",
+        argNames: ["message"],
       );
 
   @override
