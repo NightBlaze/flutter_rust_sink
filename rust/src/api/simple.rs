@@ -36,13 +36,13 @@ pub fn create_log_stream(s: StreamSink<String>) {
     }
 }
 
-// #[frb(ignore)]
+#[frb(ignore)]
 pub fn debug_log(message: String) {
     if_chain! {
         if let Ok(sink) = LOGGER_STREAM_SINK.read();
         if let Some(sink) = sink.as_ref();
         then {
-            let _ = sink.add(message);
+            let _ = sink.add(format!{"engine: {message}"});
         }
     }
 }

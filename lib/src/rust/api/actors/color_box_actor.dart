@@ -29,6 +29,11 @@ class ColorBoxActor extends RustOpaque {
         that: this,
       );
 
+  Future<void> dispose({dynamic hint}) =>
+      RustLib.instance.api.colorBoxActorDispose(
+        that: this,
+      );
+
   static ColorBoxActor newColorBoxActor({dynamic hint}) =>
       RustLib.instance.api.colorBoxActorNew(hint: hint);
 

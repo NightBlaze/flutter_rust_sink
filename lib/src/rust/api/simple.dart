@@ -11,6 +11,3 @@ String greet({required String name, dynamic hint}) =>
 
 Stream<String> createLogStream({dynamic hint}) =>
     RustLib.instance.api.createLogStream(hint: hint);
-
-Future<void> debugLog({required String message, dynamic hint}) =>
-    RustLib.instance.api.debugLog(message: message, hint: hint);

@@ -56,9 +56,18 @@ impl ColorBoxActor {
     }
 
     pub async fn set_color_sink(&self, color_sink: StreamSink<ColorModel>) {
-        debug_log("😄 set_color_sink".to_string());
+        debug_log("😄 set_color_sink 1".to_string());
         let mut inner_locked = self.inner.write().await;
         inner_locked.color_sink = Some(color_sink);
+        debug_log("😄 set_color_sink 2".to_string());
+    }
+
+    pub async fn dispose(&self) {
+        debug_log("😄 dispose 1".to_string());
+        let mut inner_locked = self.inner.write().await;
+        inner_locked.color_cancel_token.cancel();
+        inner_locked.color_sink = None;
+        debug_log("😄 dispose 2".to_string());
     }
 
     #[frb(sync)] 
@@ -68,22 +77,27 @@ impl ColorBoxActor {
 
     pub async fn start_change_color(&self) {
         let inner = self.inner.clone();
-        let _ =spawn(async move {
-            let mut inner_locked = inner.write().await;
-            // inner_locked.start_change_color_inner();
-            if inner_locked.color_cancel_token.is_canceled() {
-                inner_locked.color_cancel_token = cancel::Token::new();
-                return;
+        let _ = spawn(async move {
+            loop {
+                let mut inner_locked = inner.write().await;
+                // inner_locked.start_change_color_inner();
+                if inner_locked.color_cancel_token.is_canceled() {
+                    inner_locked.color_cancel_token = cancel::Token::new();
+                    return;
+                }
+                inner_locked.color = ColorModel::random();
+                inner_locked.color_sink.as_ref().unwrap().add(inner_locked.color).unwrap();
+                drop(inner_locked);
+                tokio::time::sleep(tokio::time::Duration::from_millis(1500)).await;
             }
-            inner_locked.color = ColorModel::random();
-            inner_locked.color_sink.as_ref().unwrap().add(inner_locked.color).unwrap();
-            tokio::time::sleep(tokio::time::Duration::from_millis(1500)).await;
         }).await;
     }
 
     pub async fn stop_change_color(&self) {
+        debug_log("😄 stop_change_color 1".to_string());
         let inner_locked = self.inner.read().await;
         inner_locked.color_cancel_token.cancel();
+        debug_log("😄 stop_change_color 2".to_string());
     }
 
     pub async fn toggle_like(&self) {
@@ -103,10 +117,11 @@ impl ColorBoxActor {
 
 impl Drop for ColorBoxActor {
     fn drop(&mut self) {
-        let cloned = self.clone();
-        spawn_blocking_with(|| async move {
-            cloned.stop_change_color().await;
-        }, FLUTTER_RUST_BRIDGE_HANDLER.thread_pool());
+        debug_log("😄 drop colorBoxActor".to_string());
+        // let cloned = self.clone();
+        // spawn_blocking_with(|| async move {
+        //     cloned.stop_change_color().await;
+        // }, FLUTTER_RUST_BRIDGE_HANDLER.thread_pool());
     }
 }
 
@@ -127,5 +142,11 @@ impl ColorBoxActorInner {
             return;
         }
         self.color = ColorModel::random();
+    }
+}
+
+impl Drop for ColorBoxActorInner {
+    fn drop(&mut self) {
+        debug_log("😄 drop colorBoxActorInner".to_string());
     }
 }

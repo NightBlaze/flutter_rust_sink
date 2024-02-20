@@ -68,20 +68,20 @@ class ColorBoxContainer extends StatefulWidget {
 }
 
 class ColorBoxContainerState extends State<ColorBoxContainer> {
-  bool _isVisible = true;
+  ColorBox? _colorBox = const ColorBox();
 
   ColorBoxContainerState() {
-    // Future.delayed(const Duration(milliseconds: 1500), () {
-    //   setState(() {
-    //     _isVisible = false;
-    //   });
-    // });
+    Future.delayed(const Duration(milliseconds: 5000), () {
+      setState(() {
+        _colorBox = null;
+      });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isVisible) {
-      return const ColorBox();
+    if (_colorBox != null) {
+      return _colorBox!;
     } else {
       return SizedBox(
         width: 50,
@@ -104,6 +104,7 @@ class ColorBox extends StatefulWidget {
 class ColorBoxState extends State<ColorBox> {
   final _actorId = generateActorId();
   final _actor = ColorBoxActor.newColorBoxActor();
+  // Stream<ColorModel>? _actorSinkColorModel;
   MaterialColor _color = Colors.green;
   String _likesCount = "0";
   int _colorSinkCount = 0;
@@ -181,7 +182,9 @@ class ColorBoxState extends State<ColorBox> {
       });
     });
 
-    _actor.startChangeColor();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _actor.startChangeColor();
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       // await colorBoxNew(actorId: _actorId);
@@ -191,15 +194,23 @@ class ColorBoxState extends State<ColorBox> {
       _changeColorSync();
     });
 
-    Future.delayed(const Duration(milliseconds: 10000), () async {
-      await _actor.stopChangeColor();
-    });
+    // Future.delayed(const Duration(milliseconds: 10000), () async {
+    //   await _actor.stopChangeColor();
+    // });
+  }
+
+  @override
+  void deactivate() {
+    debugLog("deactivate");
+    super.deactivate();
   }
 
   @override
   void dispose() {
-    // debugLog("dispose _actorId: $_actorId");
-    // colorBoxDelete(actorId: _actorId);
+    debugLog("dispose");
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _actor.dispose();
+    });
     super.dispose();
   }
 
